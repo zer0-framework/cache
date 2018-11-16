@@ -107,6 +107,9 @@ final class Redis extends Base
     public function invalidateTag(string $tag): bool
     {
         $keys = $this->redis->smembers($this->tagPrefix . $tag);
+        if (!$keys) {
+            return false;
+        }
         $this->redis->multi();
         foreach ($keys as $key) {
             $this->redis->del($this->prefix . $key);
