@@ -35,7 +35,7 @@ final class Cache extends AbstractController
     /**
      * @param ...string $key
      */
-    public function invalidateKeysAction(...$args): void
+    public function invalidateAction(...$args): void
     {
         foreach ($args as $key) {
             $this->cli->write(($this->cache->invalidateKey($key) ? '1' : '0') . ' ');
