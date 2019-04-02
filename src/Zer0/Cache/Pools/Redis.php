@@ -79,7 +79,7 @@ final class Redis extends Base
      */
     public function saveKey(string $key, $value, int $ttl = 0): bool
     {
-        return (bool)$this->redis->set($this->prefix . $key, igbinary_serialize($value), $ttl);
+        return (bool)$this->redis->set($this->prefix . $key, igbinary_serialize($value), $ttl > 0 ? $ttl : null);
     }
 
     /**
@@ -128,7 +128,7 @@ final class Redis extends Base
         try {
             $this->saving = true;
             if (!$item->addTags && !$item->removeTags) {
-                $this->saveKey($item->key, $item->value, $item->ttl);
+                $this->saveKey($item->key, $item->value, $item->ttl ?? 0);
             } else {
                 $this->redis->multi();
                 foreach ($item->addTags as $tag) {
@@ -137,7 +137,7 @@ final class Redis extends Base
                 foreach ($item->removeTags as $tag) {
                     $this->redis->srem($this->tagPrefix . $tag, $item->key);
                 }
-                $this->saveKey($item->key, $item->value, $item->ttl);
+                $this->saveKey($item->key, $item->value, $item->ttl ?? 0);
                 $this->redis->exec();
             }
             return $this;
