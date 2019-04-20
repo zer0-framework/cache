@@ -9,7 +9,7 @@
 ## Пример использования
 
 ```php
-$pool = $this->app->broker('CachePool')->get();
+$pool = $this->app->factory('CachePool');
 $user = $pool->item('user.' . $userId)->setCallback(function (Item $item) use ($userId) {
   $item
   ->expiresAfter(60 * 60 * 24)

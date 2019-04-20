@@ -29,7 +29,7 @@ final class Cache extends AbstractController
     public function before(): void
     {
         parent::before();
-        $this->cache = $this->app->broker('CachePool')->get();
+        $this->cache = $this->app->factory('CachePool');
     }
 
     /**
