@@ -102,8 +102,9 @@ final class RedisAsync extends BaseAsync
     public function invalidateTag(string $tag, callable $cb = null): void
     {
         $this->redis->eval("local keys = redis.call('smembers', KEYS[1]);
-        redis.call('del', unpack(keys));
-        redis.call('srem', KEYS[1], unpack(keys))",
+        for i=1,#keys,5000 do
+            redis.call('del', unpack(keys, i, math.min(i+4999, #keys)))
+        end",
             1,
             $this->tagPrefix . $tag,
             function (Connection $redis) use ($cb): void {

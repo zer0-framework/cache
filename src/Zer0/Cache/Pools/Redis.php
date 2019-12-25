@@ -107,8 +107,9 @@ final class Redis extends Base
     public function invalidateTag(string $tag): bool
     {
         $this->redis->eval("local keys = redis.call('smembers', KEYS[1]);
-        redis.call('del', unpack(keys));
-        redis.call('srem', KEYS[1], unpack(keys))",
+        for i=1,#keys,5000 do
+            redis.call('del', unpack(keys, i, math.min(i+4999, #keys)))
+        end",
             [$this->tagPrefix . $tag]
         );
         return true;
