@@ -3,6 +3,7 @@
 namespace Zer0\Cache\Item;
 
 use Zer0\Cache\Pools\Base;
+use Zer0\Queue\TaskAbstract;
 
 /**
  * Class Item
@@ -61,5 +62,22 @@ class Item extends ItemAbstract
     public function save()
     {
         return $this->pool->save($this);
+    }
+
+    /**
+     * @param TaskAbstract $task
+     */
+    public function setCallbackTask(TaskAbstract $task, \Zer0\Queue\Pools\Base $queue) {
+        $this->setCallback(function (Item $item) use ($queue, $timeout) {
+            try {
+                $queue->enqueueWait(
+                    new self,
+                    $timeout
+                )->throwException();
+                $item->reset()->get();
+            } catch (\Zer0\Queue\Exceptions\WaitTimeoutException $e) {
+                // Задача не завершилась за 3 секунды
+            }
+        });
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Zer0\Cache\Item;
 
+use Zer0\Queue\TaskAbstract;
+
 /**
  * Class ItemAbstract
  * @package Zer0\Cache\Item

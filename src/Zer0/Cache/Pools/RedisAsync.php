@@ -2,6 +2,7 @@
 
 namespace Zer0\Cache\Pools;
 
+use PHPDaemon\Clients\Redis\Connection;
 use PHPDaemon\Clients\Redis\Pool;
 use Zer0\App;
 use Zer0\Cache\Item\ItemAsync;
@@ -96,15 +97,34 @@ final class RedisAsync extends BaseAsync
 
     /**
      * @param string $tag
+     * @param callable|null $cb
+     */
+    public function invalidateTag(string $tag, callable $cb = null): void
+    {
+        $this->redis->eval("local keys = redis.call('smembers', KEYS[1]);
+        redis.call('del', unpack(keys));
+        redis.call('srem', KEYS[1], unpack(keys))",
+            1,
+            $this->tagPrefix . $tag,
+            function (Connection $redis) use ($cb): void {
+                if ($cb !== null) {
+                    $cb(true);
+                }
+            }
+        );
+    }
+
+    /**
+     * @param string $tag
      * @param callable $cb
      * @return void
      */
-    public function invalidateTag(string $tag, $cb = null): void
+    public function invalidateTagSlow(string $tag, callable $cb = null): void
     {
         $this->redis->sMembers($this->tagPrefix . $tag, function ($redis) use ($cb, $tag) {
             $this->redis->multi(function ($redis) use ($cb, $tag) {
                 foreach ($redis->result as $key) {
-                    $redis->del($this->prefix . $key);
+                    $redis->del($key);
                     $redis->sRem($this->tagPrefix . $tag, $key);
                 }
                 if ($cb !== null) {
@@ -129,10 +149,10 @@ final class RedisAsync extends BaseAsync
         } else {
             $this->redis->multi(function ($redis) use ($item, $cb) {
                 foreach ($item->addTags as $tag) {
-                    $this->redis->sAdd($this->tagPrefix . $tag, $item->key);
+                    $this->redis->sAdd($this->tagPrefix . $tag, $this->prefix . $item->key);
                 }
                 foreach ($item->removeTags as $tag) {
-                    $this->redis->sRem($this->tagPrefix . $tag, $item->key);
+                    $this->redis->sRem($this->tagPrefix . $tag, $this->prefix . $item->key);
                 }
                 $redis->setex($this->prefix . $item->key, $item->ttl, igbinary_serialize($item->value));
                 $redis->exec(function () use ($cb) {

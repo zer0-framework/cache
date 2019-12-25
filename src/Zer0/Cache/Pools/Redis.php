@@ -106,13 +106,27 @@ final class Redis extends Base
      */
     public function invalidateTag(string $tag): bool
     {
+        $this->redis->eval("local keys = redis.call('smembers', KEYS[1]);
+        redis.call('del', unpack(keys));
+        redis.call('srem', KEYS[1], unpack(keys))",
+            [$this->tagPrefix . $tag]
+        );
+        return true;
+    }
+
+    /**
+     * @param string $tag
+     * @return bool
+     */
+    public function invalidateTagSlow(string $tag): bool
+    {
         $keys = $this->redis->smembers($this->tagPrefix . $tag);
         if (!$keys) {
             return false;
         }
         $this->redis->multi();
         foreach ($keys as $key) {
-            $this->redis->del($this->prefix . $key);
+            $this->redis->del($key);
             $this->redis->srem($this->tagPrefix . $tag, $key);
         }
         $this->redis->exec();
@@ -132,10 +146,10 @@ final class Redis extends Base
             } else {
                 $this->redis->multi();
                 foreach ($item->addTags as $tag) {
-                    $this->redis->sadd($this->tagPrefix . $tag, $item->key);
+                    $this->redis->sadd($this->tagPrefix . $tag, $this->prefix . $item->key);
                 }
                 foreach ($item->removeTags as $tag) {
-                    $this->redis->srem($this->tagPrefix . $tag, $item->key);
+                    $this->redis->srem($this->tagPrefix . $tag, $this->prefix . $item->key);
                 }
                 $this->saveKey($item->key, $item->value, $item->ttl ?? 0);
                 $this->redis->exec();
