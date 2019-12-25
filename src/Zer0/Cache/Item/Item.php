@@ -67,16 +67,16 @@ class Item extends ItemAbstract
     /**
      * @param TaskAbstract $task
      */
-    public function setCallbackTask(TaskAbstract $task, \Zer0\Queue\Pools\Base $queue) {
-        $this->setCallback(function (Item $item) use ($queue, $timeout) {
+    public function setCallbackTask(TaskAbstract $task, \Zer0\Queue\Pools\Base $queue, int $timeout = 30): self
+    {
+        return $this->setCallback(function (Item $item) use ($queue, $timeout) {
             try {
                 $queue->enqueueWait(
-                    new self,
+                    $task,
                     $timeout
                 )->throwException();
                 $item->reset()->get();
             } catch (\Zer0\Queue\Exceptions\WaitTimeoutException $e) {
-                // Задача не завершилась за 3 секунды
             }
         });
     }

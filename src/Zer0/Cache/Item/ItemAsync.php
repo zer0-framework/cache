@@ -4,6 +4,7 @@ namespace Zer0\Cache\Item;
 
 use PHPDaemon\Structures\StackCallbacks;
 use Zer0\Cache\Pools\BaseAsync;
+use Zer0\Queue\TaskAbstract;
 
 /**
  * Class ItemAsync
@@ -62,6 +63,26 @@ class ItemAsync extends ItemAbstract
                 $this->onSet->push($cb);
             } else {
                 $cb($this);
+            }
+        });
+    }
+    /**
+     * @param TaskAbstract $task
+     */
+    public function setCallbackTask(TaskAbstract $task, \Zer0\Queue\Pools\BaseAsync $queue, int $timeout = 30): self
+    {
+        return $this->setCallback(function (Item $item) use ($queue, $timeout) {
+            try {
+                $queue->enqueueWait(
+                    $task,
+                    $timeout,
+                    function (?TaskAbstract $task) {
+                        $this->get(function() {
+                            $this->onSet->executeAll($this);
+                        });
+                    }
+                );
+            } catch (\Zer0\Queue\Exceptions\WaitTimeoutException $e) {
             }
         });
     }
