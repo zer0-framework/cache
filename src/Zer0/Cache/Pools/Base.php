@@ -4,6 +4,7 @@ namespace Zer0\Cache\Pools;
 
 use Zer0\App;
 use Zer0\Cache\Item\Item;
+use Zer0\Cache\Traits\Hash;
 use Zer0\Config\Interfaces\ConfigInterface;
 
 /**
@@ -12,6 +13,8 @@ use Zer0\Config\Interfaces\ConfigInterface;
  */
 abstract class Base
 {
+    use Hash;
+
     /**
      * @var ConfigInterface
      */
@@ -37,8 +40,11 @@ abstract class Base
      * @param string $key
      * @return Item
      */
-    public function item(string $key): Item
+    public function item(string $key, $hash = null): Item
     {
+        if ($hash !== null) {
+            $key .= ':' . $this->hash($hash);
+        }
         return new Item($key, $this);
     }
 
