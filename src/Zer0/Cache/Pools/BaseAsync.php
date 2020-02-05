@@ -43,7 +43,10 @@ abstract class BaseAsync
     public function item(string $key, $hash = false): ItemAsync
     {
         if ($hash !== null) {
-            $key .= $this->hash($hash);
+            if (!is_string($hash)) {
+                $hash = $this->hash($hash);
+            }
+            $key .= ':' . $hash;
         }
         return new ItemAsync($key, $this);
     }

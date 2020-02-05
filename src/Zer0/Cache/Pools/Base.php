@@ -43,7 +43,10 @@ abstract class Base
     public function item(string $key, $hash = null): Item
     {
         if ($hash !== null) {
-            $key .= ':' . $this->hash($hash);
+            if (!is_string($hash)) {
+                $hash = $this->hash($hash);
+            }
+            $key .= ':' . $hash;
         }
         return new Item($key, $this);
     }
