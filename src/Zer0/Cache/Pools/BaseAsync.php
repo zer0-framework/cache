@@ -14,7 +14,7 @@ use Zer0\Config\Interfaces\ConfigInterface;
 abstract class BaseAsync
 {
     use Hash;
-    
+
     /**
      * @var ConfigInterface
      */
@@ -48,7 +48,12 @@ abstract class BaseAsync
             }
             $key .= ':' . $hash;
         }
-        return new ItemAsync($key, $this);
+        $item = new ItemAsync($key, $this);
+        $ttl = $this->config->expiration[$key] ?? null;
+        if ($ttl !== null) {
+            $item->expiresAt($ttl);
+        }
+        return $item;
     }
 
     /**

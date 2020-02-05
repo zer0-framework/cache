@@ -48,7 +48,12 @@ abstract class Base
             }
             $key .= ':' . $hash;
         }
-        return new Item($key, $this);
+        $item = new Item($key, $this);
+        $ttl = $this->config->expiration[$key] ?? null;
+        if ($ttl !== null) {
+            $item->expiresAt($ttl);
+        }
+        return $item;
     }
 
     /**

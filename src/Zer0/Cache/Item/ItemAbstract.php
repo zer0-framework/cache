@@ -71,7 +71,7 @@ abstract class ItemAbstract
      * @param callable $cb
      * @return self
      */
-    public function setCallback($cb): self
+    public function setCallback(callable $cb): self
     {
         $this->callback = $cb;
         return $this;
@@ -81,10 +81,35 @@ abstract class ItemAbstract
      * @param int $seconds
      * @return Item
      */
-    public function expiresAfter($seconds = 0): self
+    public function expires(int $seconds = 0): self
     {
         $this->ttl = $seconds;
         return $this;
+    }
+
+    /**
+     * @param string $date
+     * @return $this
+     */
+    public function expiresAt(string $date): self
+    {
+        $ttl = strtotime($date) - time();
+        if ($ttl <= 0) {
+            throw new \InvalidArgumentException(sprintf('Date (%s) cannot be in the past', $date));
+        }
+        $this->ttl = $ttl;
+        return $this;
+    }
+
+    /**
+     * @deprecated
+     * @alias expires
+     * @param int $seconds
+     * @return Item
+     */
+    public function expiresAfter($seconds = 0): self
+    {
+        return $this->expires($seconds);
     }
 
     /**

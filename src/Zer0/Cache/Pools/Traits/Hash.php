@@ -13,7 +13,7 @@ trait Hash
         return \Zer0\Helpers\Str::base64UrlEncode(
             hash(
                 $this->config->hash_algo ?? 'sha3-224',
-                igbinary_serialize($value),
+                ($this->config->serializer ?? 'igbinary_serialize')($value),
                 true
             )
         );
