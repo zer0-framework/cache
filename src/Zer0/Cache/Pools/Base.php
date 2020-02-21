@@ -42,6 +42,7 @@ abstract class Base
      */
     public function item(string $key, $hash = null): Item
     {
+        $ttl = $this->config->expiration[$key] ?? null;
         if ($hash !== null) {
             if (!is_string($hash)) {
                 $hash = $this->hash($hash);
@@ -49,7 +50,6 @@ abstract class Base
             $key .= ':' . $hash;
         }
         $item = new Item($key, $this);
-        $ttl = $this->config->expiration[$key] ?? null;
         if ($ttl !== null) {
             $item->expiresAt($ttl);
         }

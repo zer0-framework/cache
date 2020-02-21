@@ -42,6 +42,7 @@ abstract class BaseAsync
      */
     public function item(string $key, $hash = false): ItemAsync
     {
+        $ttl = $this->config->expiration[$key] ?? null;
         if ($hash !== null) {
             if (!is_string($hash)) {
                 $hash = $this->hash($hash);
@@ -49,7 +50,6 @@ abstract class BaseAsync
             $key .= ':' . $hash;
         }
         $item = new ItemAsync($key, $this);
-        $ttl = $this->config->expiration[$key] ?? null;
         if ($ttl !== null) {
             $item->expiresAt($ttl);
         }
