@@ -46,7 +46,7 @@ final class Redis extends Base
         parent::__construct($config, $app);
         $this->redis = $this->app->broker('Redis')->get($config->redis ?? '');
         $this->prefix = $config->prefix ?? 'cache:';
-        $this->tagPrefix = $config->tag_prefix ?? 'cache-tag:';
+        $this->tagPrefix = $config->tag_prefix ?? $this->prefix . 'tag:';
     }
 
     /**
@@ -142,7 +142,7 @@ final class Redis extends Base
     {
         try {
             $this->saving = true;
-            if (!$item->addTags && !$item->removeTags) {
+            if (!$item->addTags && !$item->removeTags && $item->hasValue) {
                 $this->saveKey($item->key, $item->value, $item->ttl ?? 0);
             } else {
                 $this->redis->multi();
@@ -152,7 +152,11 @@ final class Redis extends Base
                 foreach ($item->removeTags as $tag) {
                     $this->redis->srem($this->tagPrefix . $tag, $this->prefix . $item->key);
                 }
-                $this->saveKey($item->key, $item->value, $item->ttl ?? 0);
+                if ($item->hasValue) {
+                    $this->saveKey($item->key, $item->value, $item->ttl ?? 0);
+                } else {
+                    $this->redis->expires($this->prefix . $item->key, $item->ttl);
+                }
                 $this->redis->exec();
             }
             return $this;
