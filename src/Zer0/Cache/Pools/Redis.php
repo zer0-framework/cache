@@ -134,15 +134,19 @@ final class Redis extends Base
     public function invalidateTagSlow (string $tag): bool
     {
         $keys = $this->redis->smembers($this->tagPrefix . $tag);
+
         if (!$keys) {
             return false;
         }
-        $this->redis->multi();
-        foreach ($keys as $key) {
-            $this->redis->del($key);
-            $this->redis->srem($this->tagPrefix . $tag, $key);
-        }
-        $this->redis->exec();
+
+        $this->redis->pipeline(
+            function (PipelineInterface $redis) use ($keys, $tag) {
+                foreach ($keys as $key) {
+                    $this->redis->del($key);
+                    $this->redis->srem($this->tagPrefix . $tag, $key);
+                }
+            }
+        );
 
         return true;
     }
