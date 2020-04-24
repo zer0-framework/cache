@@ -164,7 +164,7 @@ final class Redis extends Base
                 $this->redis->set(
                     $this->prefix . $item->key,
                     igbinary_serialize($item->value),
-                    $item->ttl > 0 ? $ttl : null
+                    $item->ttl > 0 ? $item->ttl : null
                 );
             }
             else {
@@ -180,7 +180,7 @@ final class Redis extends Base
                             $redis->set(
                                 $this->prefix . $item->key,
                                 igbinary_serialize($item->value),
-                                $item->ttl > 0 ? $ttl : null
+                                $item->ttl > 0 ? $item->ttl : null
                             );
                         }
                         else {
