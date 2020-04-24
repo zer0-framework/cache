@@ -142,8 +142,8 @@ final class Redis extends Base
         $this->redis->pipeline(
             function (PipelineInterface $redis) use ($keys, $tag) {
                 foreach ($keys as $key) {
-                    $this->redis->del($key);
-                    $this->redis->srem($this->tagPrefix . $tag, $key);
+                    $redis->del($key);
+                    $redis->srem($this->tagPrefix . $tag, $key);
                 }
             }
         );
@@ -177,14 +177,14 @@ final class Redis extends Base
                             $redis->srem($this->tagPrefix . $tag, $this->prefix . $item->key);
                         }
                         if ($item->hasValue) {
-                            $this->redis->set(
+                            $redis->set(
                                 $this->prefix . $item->key,
                                 igbinary_serialize($item->value),
                                 $item->ttl > 0 ? $ttl : null
                             );
                         }
                         else {
-                            $this->redis->expires($this->prefix . $item->key, $item->ttl);
+                            $redis->expires($this->prefix . $item->key, $item->ttl);
                         }
                     }
                 );
