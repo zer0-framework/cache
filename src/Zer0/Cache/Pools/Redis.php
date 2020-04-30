@@ -2,11 +2,14 @@
 
 namespace Zer0\Cache\Pools;
 
+use RedisClient\Exception\EmptyResponseException;
+use RedisClient\Exception\InvalidArgumentException;
 use RedisClient\Pipeline\PipelineInterface;
 use RedisClient\RedisClient;
 use Zer0\App;
 use Zer0\Cache\Item\Item;
 use Zer0\Config\Interfaces\ConfigInterface;
+use Zer0\Exceptions\QueryFailedException;
 
 /**
  * Class Redis
@@ -50,112 +53,105 @@ final class Redis extends Base
         $this->tagPrefix = $config->tag_prefix ?? $this->prefix . 'tag:';
     }
 
-    /**
-     * @param string $key
-     * @param bool & $hasValue
-     *
-     * @return mixed|null
-     */
+    /** {@inheritDoc} */
     public function getValueByKey (string $key, &$hasValue = null)
     {
-        $raw = $this->redis->get($this->prefix . $key);
-        if ($raw === null) {
-            $hasValue = false;
-
-            return null;
-        }
         try {
-            $value    = igbinary_unserialize($raw);
-            $hasValue = true;
+            $raw = $this->redis->get($this->prefix . $key);
+            if ($raw === null) {
+                $hasValue = false;
 
-            return $value;
-        } catch (\ErrorException $e) {
-            $hasValue = false;
+                return null;
+            }
+            try {
+                $value    = igbinary_unserialize($raw);
+                $hasValue = true;
 
-            return null;
+                return $value;
+            } catch (\ErrorException $e) {
+                $hasValue = false;
+
+                return null;
+            }
+        } catch (EmptyResponseException $exception) {
+            throw new QueryFailedException('Failed to get value by key: ' . $key, 0, $exception);
         }
     }
 
-    /**
-     * @param string $key
-     * @param mixed  $value
-     * @param int    $ttl Seconds to live
-     *
-     * @return bool
-     */
+    /** {@inheritDoc} */
     public function saveKey (string $key, $value, int $ttl = 0): bool
     {
-        return (bool)$this->redis->set($this->prefix . $key, igbinary_serialize($value), $ttl > 0 ? $ttl : null);
+        try {
+            return (bool)$this->redis->set($this->prefix . $key, igbinary_serialize($value), $ttl > 0 ? $ttl : null);
+        } catch (EmptyResponseException $exception) {
+            throw new QueryFailedException('Failed to save key: '. $key, 0, $exception);
+        }
     }
 
-    /**
-     * @param Item $item
-     *
-     * @return bool
-     */
+    /** {@inheritDoc} */
     public function invalidate (Item $item): bool
     {
-        return (bool)$this->redis->del($this->prefix . $item->key);
+        try {
+            return (bool)$this->redis->del($this->prefix . $item->key);
+        } catch (EmptyResponseException $exception) {
+            throw new QueryFailedException('Failed to invalidate item', 0, $exception);
+        }
     }
 
-    /**
-     * @param string $key
-     *
-     * @return bool
-     */
+    /** {@inheritDoc} */
     public function invalidateKey (string $key): bool
     {
-        return (bool)$this->redis->del($this->prefix . $key);
+        try {
+            return (bool)$this->redis->del($this->prefix . $key);
+        } catch (EmptyResponseException $exception) {
+            throw new QueryFailedException('Failed to invalidate key: ' . $key, 0, $exception);
+        }
     }
 
-    /**
-     * @param string $tag
-     *
-     * @return bool
-     */
+    /** {@inheritDoc} */
     public function invalidateTag (string $tag): bool
     {
-        $this->redis->eval(
-            "local keys = redis.call('smembers', KEYS[1]);
+        try {
+            $this->redis->eval(
+                "local keys = redis.call('smembers', KEYS[1]);
         for i=1,#keys,5000 do
             redis.call('del', unpack(keys, i, math.min(i+4999, #keys)))
         end",
-            [$this->tagPrefix . $tag]
-        );
-
-        return true;
-    }
-
-    /**
-     * @param string $tag
-     *
-     * @return bool
-     */
-    public function invalidateTagSlow (string $tag): bool
-    {
-        $keys = $this->redis->smembers($this->tagPrefix . $tag);
-
-        if (!$keys) {
-            return false;
+                [$this->tagPrefix . $tag]
+            );
+        } catch (EmptyResponseException $exception) {
+            throw new QueryFailedException('Failed to invalidate tag: ' . $tag, 0, $exception);
         }
 
-        $this->redis->pipeline(
-            function (PipelineInterface $redis) use ($keys, $tag) {
-                foreach ($keys as $key) {
-                    $redis->del($key);
-                    $redis->srem($this->tagPrefix . $tag, $key);
-                }
-            }
-        );
-
         return true;
     }
 
-    /**
-     * @param Item $item
-     *
-     * @return self
-     */
+    /** {@inheritDoc} */
+    public function invalidateTagSlow (string $tag): bool
+    {
+        try {
+            $keys = $this->redis->smembers($this->tagPrefix . $tag);
+
+            if (!$keys) {
+                return false;
+            }
+
+            $this->redis->pipeline(
+                function (PipelineInterface $redis) use ($keys, $tag) {
+                    foreach ($keys as $key) {
+                        $redis->del($key);
+                        $redis->srem($this->tagPrefix . $tag, $key);
+                    }
+                }
+            );
+
+            return true;
+        } catch (EmptyResponseException $exception) {
+            throw new QueryFailedException('Failed to invalidate tag: ' . $tag, 0, $exception);
+        }
+    }
+
+    /** {@inheritDoc} */
     public function save (Item $item)
     {
         try {
@@ -189,10 +185,12 @@ final class Redis extends Base
                     }
                 );
             }
-
-            return $this;
+        } catch (EmptyResponseException|InvalidArgumentException $exception) {
+            throw new QueryFailedException('Failed to save the item', 0, $exception);
         } finally {
             $this->saving = false;
+
+            return $this;
         }
     }
 }

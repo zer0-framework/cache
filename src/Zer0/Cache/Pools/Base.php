@@ -6,6 +6,7 @@ use Zer0\App;
 use Zer0\Cache\Item\Item;
 use Zer0\Cache\Traits\Hash;
 use Zer0\Config\Interfaces\ConfigInterface;
+use Zer0\Exceptions\QueryFailedException;
 
 /**
  * Class Base
@@ -58,40 +59,53 @@ abstract class Base
 
     /**
      * @param string $key
-     * @param bool &$hasValue
-     * @return mixed
+     * @param null   $hasValue
+     *
+     * @return mixed|null
+     * @throws QueryFailedException
      */
     abstract public function getValueByKey(string $key, &$hasValue = null);
 
     /**
      * @param string $key
-     * @param mixed $value
-     * @param int $ttl Seconds to live
+     * @param mixed  $value
+     * @param int    $ttl
+     *
      * @return bool
+     * @throws QueryFailedException
      */
     abstract public function saveKey(string $key, $value, int $ttl = 0): bool;
 
 
     /**
      * @param Item $item
-     * @return mixed
+     *
+     * @return bool
+     * @throws QueryFailedException
      */
     abstract public function invalidate(Item $item): bool;
 
     /**
      * @param string $key
-     * @return mixed
+     *
+     * @return bool
+     * @throws QueryFailedException
      */
     abstract public function invalidateKey(string $key): bool;
 
     /**
      * @param Item $item
+     *
+     * @return $this
+     * @throws QueryFailedException
      */
     abstract public function save(Item $item);
 
     /**
      * @param string $tag
+     *
      * @return bool
+     * @throws QueryFailedException
      */
     abstract public function invalidateTag(string $tag);
 }

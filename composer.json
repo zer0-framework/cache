@@ -22,6 +22,10 @@
         "zer0-framework/core": "*",
         "zer0-framework/config": "*"
     },
+    "suggest": {
+        "zer0-framework/memcached": "^0.1",
+        "zer0-framework/redis": "^0.1"
+    },
     "autoload": {
         "classmap": ["src/"]
     },
