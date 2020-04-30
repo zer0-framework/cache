@@ -3,6 +3,7 @@
 namespace Zer0\Cache\Item;
 
 use Zer0\Cache\Pools\Base;
+use Zer0\Exceptions\QueryFailedException;
 use Zer0\Queue\TaskAbstract;
 
 /**
@@ -28,12 +29,16 @@ class Item extends ItemAbstract
     }
 
     /**
-     * @return mixed
+     * @return mixed|null
      */
     public function get()
     {
         if ($this->hasValue === null) {
-            $this->value = $this->pool->getValueByKey($this->key, $this->hasValue);
+            try {
+                $this->value = $this->pool->getValueByKey($this->key, $this->hasValue);
+            } catch (QueryFailedException $exception) {
+                // @TODO
+            }
         }
         if ($this->hasValue === true) {
             return $this->value;
@@ -50,6 +55,7 @@ class Item extends ItemAbstract
 
     /**
      * @return bool
+     * @throws \Zer0\Exceptions\QueryFailedException
      */
     public function invalidate()
     {
@@ -57,7 +63,8 @@ class Item extends ItemAbstract
     }
 
     /**
-     * @return bool
+     * @return Base
+     * @throws \Zer0\Exceptions\QueryFailedException
      */
     public function save()
     {
