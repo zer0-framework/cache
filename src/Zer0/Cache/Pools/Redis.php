@@ -9,7 +9,7 @@ use RedisClient\RedisClient;
 use Zer0\App;
 use Zer0\Cache\Item\Item;
 use Zer0\Config\Interfaces\ConfigInterface;
-use Zer0\Exceptions\QueryFailedException;
+use Zer0\Cache\Exceptions\QueryFailedException;
 
 /**
  * Class Redis
