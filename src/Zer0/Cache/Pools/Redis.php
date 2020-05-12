@@ -89,27 +89,27 @@ final class Redis extends Base
     }
 
     /** {@inheritDoc} */
-    public function invalidate (Item $item): bool
+    public function invalidate (Item $item)
     {
         try {
-            return (bool)$this->redis->del($this->prefix . $item->key);
+            $this->redis->del($this->prefix . $item->key);
         } catch (EmptyResponseException $exception) {
             throw new QueryFailedException('Failed to invalidate item', 0, $exception);
         }
     }
 
     /** {@inheritDoc} */
-    public function invalidateKey (string $key): bool
+    public function invalidateKey (string $key)
     {
         try {
-            return (bool)$this->redis->del($this->prefix . $key);
+            $this->redis->del($this->prefix . $key);
         } catch (EmptyResponseException $exception) {
             throw new QueryFailedException('Failed to invalidate key: ' . $key, 0, $exception);
         }
     }
 
     /** {@inheritDoc} */
-    public function invalidateTag (string $tag): bool
+    public function invalidateTag (string $tag)
     {
         try {
             $this->redis->eval(
@@ -122,8 +122,6 @@ final class Redis extends Base
         } catch (EmptyResponseException $exception) {
             throw new QueryFailedException('Failed to invalidate tag: ' . $tag, 0, $exception);
         }
-
-        return true;
     }
 
     /** {@inheritDoc} */

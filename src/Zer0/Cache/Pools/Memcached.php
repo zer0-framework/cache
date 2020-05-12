@@ -89,21 +89,20 @@ final class Memcached extends Base
     }
 
     /** {@inheritDoc} */
-    public function invalidate (Item $item): bool
+    public function invalidate (Item $item)
     {
         try {
-            return (bool)$this->memcached->delete($this->prefix . $item->key);
+            $this->memcached->delete($this->prefix . $item->key);
         } catch (\Throwable $exception) {
             throw new QueryFailedException('Failed to invalidate item', 0, $exception);
         }
     }
 
     /** {@inheritDoc} */
-    public function invalidateKey (string $key): bool
+    public function invalidateKey (string $key)
     {
         try {
-            return $this->memcached->delete($this->prefix . $key)
-            && $this->memcached->getResultCode() === \Memcached::RES_DELETED;
+            $this->memcached->delete($this->prefix . $key);
 
         } catch (\Throwable $exception) {
             throw new QueryFailedException('Failed to invalidate key: ' . $key, 0, $exception);
@@ -111,13 +110,13 @@ final class Memcached extends Base
     }
 
     /** {@inheritDoc} */
-    public function invalidateTag (string $tag): bool
+    public function invalidateTag (string $tag)
     {
         throw new NotSupportedException('tags as are not supported in Memcached');
     }
 
     /** {@inheritDoc} */
-    public function invalidateTagSlow (string $tag): bool
+    public function invalidateTagSlow (string $tag)
     {
         throw new NotSupportedException('tags as are not supported in Memcached');
     }

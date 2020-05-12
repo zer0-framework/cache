@@ -80,18 +80,16 @@ abstract class Base
     /**
      * @param Item $item
      *
-     * @return bool
      * @throws QueryFailedException
      */
-    abstract public function invalidate(Item $item): bool;
+    abstract public function invalidate(Item $item);
 
     /**
      * @param string $key
      *
-     * @return bool
      * @throws QueryFailedException
      */
-    abstract public function invalidateKey(string $key): bool;
+    abstract public function invalidateKey(string $key);
 
     /**
      * @param Item $item
@@ -104,7 +102,6 @@ abstract class Base
     /**
      * @param string $tag
      *
-     * @return bool
      * @throws QueryFailedException
      */
     abstract public function invalidateTag(string $tag);
