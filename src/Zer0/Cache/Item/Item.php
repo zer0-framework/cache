@@ -55,7 +55,7 @@ class Item extends ItemAbstract
 
     /**
      * @return bool
-     * @throws \Zer0\Exceptions\QueryFailedException
+     * @throws \Zer0\Cache\Exceptions\QueryFailedException
      */
     public function invalidate()
     {
@@ -64,7 +64,7 @@ class Item extends ItemAbstract
 
     /**
      * @return Base
-     * @throws \Zer0\Exceptions\QueryFailedException
+     * @throws \Zer0\Cache\Exceptions\QueryFailedException
      */
     public function save()
     {
