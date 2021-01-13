@@ -2,8 +2,8 @@
 
 namespace Zer0\Cache\Item;
 
+use Zer0\Cache\Exceptions\QueryFailedException;
 use Zer0\Cache\Pools\Base;
-use Zer0\Exceptions\QueryFailedException;
 use Zer0\Queue\TaskAbstract;
 
 /**

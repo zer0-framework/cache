@@ -13,16 +13,18 @@ use Zer0\Queue\Pools\Base;
 trait QueueTask
 {
     /**
-     * @param Base $queue
-     * @param int $timeout
+     * @param Base  $queue
+     * @param int   $timeout
+     * @param array $arguments
+     *
      * @return \Closure
      */
-    public static function cacheCallback(Base $queue, int $timeout = 3): \Closure
+    public static function cacheCallback(Base $queue, int $timeout = 3, array $arguments = []): \Closure
     {
         return function (Item $item) use ($queue, $timeout) {
             try {
-                $queue->enqueueWait(
-                    new self,
+                $queue->pushWait(
+                    new self(...$arguments),
                     $timeout
                 )->throwException();
                 $item->reset()->get();
