@@ -88,7 +88,7 @@ final class ExtRedis extends Base
     public function invalidate (Item $item)
     {
         try {
-            $this->redis->del($this->prefix . $item->key);
+            $this->redis->unlink($this->prefix . $item->key);
         } catch (\RedisException $exception) {
             throw new QueryFailedException('Failed to invalidate item', 0, $exception);
         }
@@ -98,7 +98,7 @@ final class ExtRedis extends Base
     public function invalidateKey (string $key)
     {
         try {
-            $this->redis->del($this->prefix . $key);
+            $this->redis->unlink($this->prefix . $key);
         } catch (\RedisException $exception) {
             throw new QueryFailedException('Failed to invalidate key: ' . $key, 0, $exception);
         }
@@ -111,7 +111,7 @@ final class ExtRedis extends Base
             $this->redis->eval(
                 "local keys = redis.call('smembers', KEYS[1]);
         for i=1,#keys,5000 do
-            redis.call('del', unpack(keys, i, math.min(i+4999, #keys)))
+            redis.call('unlink', unpack(keys, i, math.min(i+4999, #keys)))
         end",
                 [$this->tagPrefix . $tag],
                 1
@@ -133,7 +133,7 @@ final class ExtRedis extends Base
 
             $this->redis->pipeline();
             foreach ($keys as $key) {
-                $this->redis->del($key);
+                $this->redis->unlink($key);
                 $this->redis->srem($this->tagPrefix . $tag, $key);
             }
             $this->redis->exec();

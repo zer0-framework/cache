@@ -78,7 +78,7 @@ final class RedisAsync extends BaseAsync
      */
     public function invalidate(ItemAsync $item, $cb): void
     {
-        $this->redis->del($this->prefix . $item->key, function ($redis) use ($cb) {
+        $this->redis->unlink($this->prefix . $item->key, function ($redis) use ($cb) {
             $cb(true);
         });
     }
@@ -90,7 +90,7 @@ final class RedisAsync extends BaseAsync
      */
     public function invalidateKey(string $key, $cb): void
     {
-        $this->redis->del($this->prefix . $key, function ($redis) use ($cb) {
+        $this->redis->unlink($this->prefix . $key, function ($redis) use ($cb) {
             $cb(true);
         });
     }
@@ -103,7 +103,7 @@ final class RedisAsync extends BaseAsync
     {
         $this->redis->eval("local keys = redis.call('smembers', KEYS[1]);
         for i=1,#keys,5000 do
-            redis.call('del', unpack(keys, i, math.min(i+4999, #keys)))
+            redis.call('unlink', unpack(keys, i, math.min(i+4999, #keys)))
         end",
             1,
             $this->tagPrefix . $tag,
@@ -125,7 +125,7 @@ final class RedisAsync extends BaseAsync
         $this->redis->sMembers($this->tagPrefix . $tag, function ($redis) use ($cb, $tag) {
             $this->redis->multi(function ($redis) use ($cb, $tag) {
                 foreach ($redis->result as $key) {
-                    $redis->del($key);
+                    $redis->unlink($key);
                     $redis->sRem($this->tagPrefix . $tag, $key);
                 }
                 if ($cb !== null) {

@@ -92,7 +92,7 @@ final class Redis extends Base
     public function invalidate (Item $item)
     {
         try {
-            $this->redis->del($this->prefix . $item->key);
+            $this->redis->unlink($this->prefix . $item->key);
         } catch (EmptyResponseException $exception) {
             throw new QueryFailedException('Failed to invalidate item', 0, $exception);
         }
@@ -102,7 +102,7 @@ final class Redis extends Base
     public function invalidateKey (string $key)
     {
         try {
-            $this->redis->del($this->prefix . $key);
+            $this->redis->unlink($this->prefix . $key);
         } catch (EmptyResponseException $exception) {
             throw new QueryFailedException('Failed to invalidate key: ' . $key, 0, $exception);
         }
@@ -115,7 +115,7 @@ final class Redis extends Base
             $this->redis->eval(
                 "local keys = redis.call('smembers', KEYS[1]);
         for i=1,#keys,5000 do
-            redis.call('del', unpack(keys, i, math.min(i+4999, #keys)))
+            redis.call('unlink', unpack(keys, i, math.min(i+4999, #keys)))
         end",
                 [$this->tagPrefix . $tag]
             );
@@ -137,7 +137,7 @@ final class Redis extends Base
             $this->redis->pipeline(
                 function (PipelineInterface $redis) use ($keys, $tag) {
                     foreach ($keys as $key) {
-                        $redis->del($key);
+                        $redis->unlink($key);
                         $redis->srem($this->tagPrefix . $tag, $key);
                     }
                 }
