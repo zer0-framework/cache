@@ -5,6 +5,7 @@ namespace Zer0\Cache\Pools;
 use Zer0\App;
 use Zer0\Cache\Item\ItemAsync;
 use Zer0\Cache\Traits\Hash;
+use Zer0\Cache\Traits\Serialization;
 use Zer0\Config\Interfaces\ConfigInterface;
 
 /**
@@ -14,6 +15,7 @@ use Zer0\Config\Interfaces\ConfigInterface;
 abstract class BaseAsync
 {
     use Hash;
+    use Serialization;
 
     /**
      * @var ConfigInterface

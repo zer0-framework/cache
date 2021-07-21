@@ -64,7 +64,7 @@ final class Redis extends Base
                 return null;
             }
             try {
-                $value    = igbinary_unserialize($raw);
+                $value    = $this->unserialize($raw);
                 $hasValue = true;
 
                 return $value;
@@ -82,7 +82,7 @@ final class Redis extends Base
     public function saveKey (string $key, $value, int $ttl = 0): bool
     {
         try {
-            return (bool)$this->redis->set($this->prefix . $key, igbinary_serialize($value), $ttl > 0 ? $ttl : null);
+            return (bool)$this->redis->set($this->prefix . $key, $this->serialize($value), $ttl > 0 ? $ttl : null);
         } catch (EmptyResponseException $exception) {
             throw new QueryFailedException('Failed to save key: '. $key, 0, $exception);
         }
@@ -157,7 +157,7 @@ final class Redis extends Base
             if (!$item->addTags && !$item->removeTags && $item->hasValue) {
                 $this->redis->set(
                     $this->prefix . $item->key,
-                    igbinary_serialize($item->value),
+                    $this->serialize($item->value),
                     $item->ttl > 0 ? $item->ttl : null
                 );
             }
@@ -173,7 +173,7 @@ final class Redis extends Base
                         if ($item->hasValue) {
                             $redis->set(
                                 $this->prefix . $item->key,
-                                igbinary_serialize($item->value),
+                                $this->serialize($item->value),
                                 $item->ttl > 0 ? $item->ttl : null
                             );
                         }

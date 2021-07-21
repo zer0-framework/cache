@@ -49,7 +49,7 @@ final class RedisAsync extends BaseAsync
                 $cb(null, false);
             } else {
                 try {
-                    $cb(igbinary_unserialize($redis->result), true);
+                    $cb($this->unserialize($redis->result), true);
                 } catch (\ErrorException $e) {
                     $cb(null, false);
                 }
@@ -66,7 +66,7 @@ final class RedisAsync extends BaseAsync
      */
     public function saveKey(string $key, $value, int $ttl = 0, $cb): void
     {
-        $this->redis->setex($this->prefix . $key, $ttl, igbinary_serialize($value), function ($redis) use ($cb) {
+        $this->redis->setex($this->prefix . $key, $ttl, $this->serialize($value), function ($redis) use ($cb) {
             $cb(true);
         });
     }
@@ -155,7 +155,7 @@ final class RedisAsync extends BaseAsync
                 foreach ($item->removeTags as $tag) {
                     $this->redis->sRem($this->tagPrefix . $tag, $this->prefix . $item->key);
                 }
-                $redis->setex($this->prefix . $item->key, $item->ttl, igbinary_serialize($item->value));
+                $redis->setex($this->prefix . $item->key, $item->ttl, $this->serialize($item->value));
                 $redis->exec(function () use ($cb) {
                     $cb($this);
                 });
