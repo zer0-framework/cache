@@ -23,12 +23,7 @@ trait Serialization
     {
         foreach (explode(',', $this->config->unserializer ?? 'igbinary_unserialize') as $func) {
             if ($func === 'msgpack_unpack') {
-                $unpacker = new \MessagePackUnpacker(false);
-                $unpacker->feed($string);
-                $unpacker->execute();
-                $value = $unpacker->data();
-                $unpacker->reset();
-                if ($value === 0 && strlen($string) > 1) {
+                if (substr($string, 0, 3) === "\0\0\0") {
                     continue;
                 }
                 return $value;
