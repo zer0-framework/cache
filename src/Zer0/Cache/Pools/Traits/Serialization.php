@@ -22,14 +22,11 @@ trait Serialization
     public function unserialize (string $string)
     {
         foreach (explode(',', $this->config->unserializer ?? 'igbinary_unserialize') as $func) {
-            if ($func === 'msgpack_unpack') {
-                if (substr($string, 0, 3) === "\0\0\0") {
-                    continue;
-                }
-                return $value;
-            } else {
-                return $func($string);
+            if ($func === 'msgpack_unpack' && substr($string, 0, 3) === "\0\0\0") {
+                continue;
             }
+
+            return $func($string);
         }
     }
 }
