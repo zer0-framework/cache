@@ -54,12 +54,13 @@ class Item extends ItemAbstract
     }
 
     /**
+     * @param $expires = null
      * @return bool
      * @throws \Zer0\Cache\Exceptions\QueryFailedException
      */
-    public function invalidate()
+    public function invalidate($after = null)
     {
-        return $this->pool->invalidate($this);
+        return $this->pool->invalidate($this, $after);
     }
 
     /**

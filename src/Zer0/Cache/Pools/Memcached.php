@@ -89,10 +89,18 @@ final class Memcached extends Base
     }
 
     /** {@inheritDoc} */
-    public function invalidate (Item $item)
+    public function invalidate (Item $item, $after = null)
     {
         try {
-            $this->memcached->delete($this->prefix . $item->key);
+            if ($after !== null) {
+                if (is_int($after)) {
+                    $this->redis->touch($this->prefix . $item->key, $after);
+                } else {
+                    $this->redis->touch($this->prefix . $item->key, strtotime($after) - time());
+                }
+            } else {
+                $this->memcached->delete($this->prefix . $item->key);
+            }
         } catch (\Throwable $exception) {
             throw new QueryFailedException('Failed to invalidate item', 0, $exception);
         }

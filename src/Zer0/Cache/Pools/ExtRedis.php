@@ -85,10 +85,18 @@ final class ExtRedis extends Base
     }
 
     /** {@inheritDoc} */
-    public function invalidate (Item $item)
+    public function invalidate (Item $item, $after = null)
     {
         try {
-            $this->redis->unlink($this->prefix . $item->key);
+            if ($after !== null) {
+                if (is_int($after)) {
+                    $this->redis->expire($this->prefix . $item->key, $after);
+                } else {
+                    $this->redis->expireAt($this->prefix . $item->key, strtotime($after));
+                }
+            } else {
+                $this->redis->unlink($this->prefix . $item->key);
+            }
         } catch (\RedisException $exception) {
             throw new QueryFailedException('Failed to invalidate item', 0, $exception);
         }

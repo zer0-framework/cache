@@ -81,10 +81,10 @@ abstract class Base
 
     /**
      * @param Item $item
-     *
+     * @param $after
      * @throws QueryFailedException
      */
-    abstract public function invalidate(Item $item);
+    abstract public function invalidate(Item $item, $after = null);
 
     /**
      * @param string $key
